@@ -1,0 +1,51 @@
+From b5b06ccf564cd339b91526c13be1dd86d06c1a93 Mon Sep 17 00:00:00 2001
+From: David Teigland <teigland@redhat.com>
+Date: Mon, 13 Apr 2015 11:00:40 -0500
+Subject: [PATCH 10/10] dlm_controld: don't log error from cpg_dispatch
+
+These errors from cpg_dispatch are expected.
+
+Signed-off-by: David Teigland <teigland@redhat.com>
+---
+ dlm_controld/cpg.c        | 2 +-
+ dlm_controld/daemon_cpg.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dlm_controld/cpg.c b/dlm_controld/cpg.c
+index f97115835987..b23a008e1996 100644
+--- a/dlm_controld/cpg.c
++++ b/dlm_controld/cpg.c
+@@ -1664,7 +1664,7 @@ static void process_cpg_lockspace(int ci)
+ 	}
+ 
+ 	error = cpg_dispatch(ls->cpg_handle, CS_DISPATCH_ALL);
+-	if (error != CS_OK) {
++	if (error != CS_OK && error != CS_ERR_BAD_HANDLE) {
+ 		log_error("cpg_dispatch error %d", error);
+ 		return;
+ 	}
+diff --git a/dlm_controld/daemon_cpg.c b/dlm_controld/daemon_cpg.c
+index d88cd467f03a..356e80ddfc67 100644
+--- a/dlm_controld/daemon_cpg.c
++++ b/dlm_controld/daemon_cpg.c
+@@ -1871,7 +1871,7 @@ int set_protocol(void)
+ 			 */
+ 
+ 			error = cpg_dispatch(cpg_handle_daemon, CS_DISPATCH_ONE);
+-			if (error != CS_OK)
++			if (error != CS_OK && error != CS_ERR_BAD_HANDLE)
+ 				log_error("daemon cpg_dispatch one error %d", error);
+ 		}
+ 		if (pollfd.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+@@ -2181,7 +2181,7 @@ void process_cpg_daemon(int ci)
+ 	cs_error_t error;
+ 
+ 	error = cpg_dispatch(cpg_handle_daemon, CS_DISPATCH_ALL);
+-	if (error != CS_OK)
++	if (error != CS_OK && error != CS_ERR_BAD_HANDLE)
+ 		log_error("daemon cpg_dispatch error %d", error);
+ }
+ 
+-- 
+1.8.3.1
+

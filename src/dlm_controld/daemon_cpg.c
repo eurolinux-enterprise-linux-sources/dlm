@@ -79,6 +79,7 @@ struct node_daemon {
 	int fence_actor_done; /* for status/debug */
 	int fence_actor_last; /* for status/debug */
 	int fence_actors[MAX_NODES];
+	int fence_actors_orig[MAX_NODES];
 
 	struct protocol proto;
 	struct fence_config fence_config;
@@ -537,6 +538,7 @@ static int set_fence_actors(struct node_daemon *node, int all_memb)
 	int i, nodeid, count = 0, low = 0;
 
 	memset(node->fence_actors, 0, sizeof(node->fence_actors));
+	memset(node->fence_actors_orig, 0, sizeof(node->fence_actors_orig));
 
 	for (i = 0; i < daemon_member_count; i++) {
 		nodeid = daemon_member[i].nodeid;
@@ -549,6 +551,9 @@ static int set_fence_actors(struct node_daemon *node, int all_memb)
 		if (!low || nodeid < low)
 			low = nodeid;
 	}
+
+	/* keep a copy of the original set so they can be retried if all fail */
+	memcpy(node->fence_actors_orig, node->fence_actors, sizeof(node->fence_actors));
 
 	log_debug("set_fence_actors for %d low %d count %d",
 		  node->nodeid, low, count);
@@ -592,6 +597,7 @@ static int get_fence_actor(struct node_daemon *node)
 static void clear_fence_actor(int nodeid, int actor)
 {
 	struct node_daemon *node;
+	int remaining = 0;
 	int i;
 
 	node = get_node_daemon(nodeid);
@@ -599,10 +605,15 @@ static void clear_fence_actor(int nodeid, int actor)
 		return;
 
 	for (i = 0; i < MAX_NODES; i++) {
-		if (node->fence_actors[i] == actor) {
+		if (node->fence_actors[i] == actor)
 			node->fence_actors[i] = 0;
-			return;
-		}
+		else if (node->fence_actors[i])
+			remaining++;
+	}
+
+	if (!remaining && opt(repeat_failed_fencing_ind)) {
+		log_debug("clear_fence_actor %d restoring original actors to retry", actor);
+		memcpy(node->fence_actors, node->fence_actors_orig, sizeof(node->fence_actors));
 	}
 }
 

@@ -1346,6 +1346,11 @@ static void set_opt_defaults(void)
 			1, NULL,
 			"enable/disable startup fencing");
 
+	set_opt_default(repeat_failed_fencing_ind,
+			"repeat_failed_fencing", '\0', req_arg_bool,
+			1, NULL,
+			"enable/disable retrying after fencing fails");
+
 	set_opt_default(enable_quorum_fencing_ind,
 			"enable_quorum_fencing", 'q', req_arg_bool,
 			1, NULL,

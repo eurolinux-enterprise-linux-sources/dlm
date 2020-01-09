@@ -62,9 +62,9 @@ LIB_CFLAGS += $(BIN_CFLAGS)
 LIB_LDFLAGS += -Wl,-z,relro -pie
 
 ifeq ($(USE_SD_NOTIFY),yes)
-	BIN_CFLAGS += $(shell pkg-config --cflags libsystemd-daemon) \
+	BIN_CFLAGS += $(shell pkg-config --cflags libsystemd) \
 		      -DUSE_SD_NOTIFY
-	BIN_LDFLAGS += $(shell pkg-config --libs libsystemd-daemon)
+	BIN_LDFLAGS += $(shell pkg-config --libs libsystemd)
 endif
 
 all: $(LIB_TARGET) $(BIN_TARGET)

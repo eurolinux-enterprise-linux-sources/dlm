@@ -106,6 +106,7 @@ enum {
         enable_fencing_ind,
         enable_concurrent_fencing_ind,
         enable_startup_fencing_ind,
+        repeat_failed_fencing_ind,
         enable_quorum_fencing_ind,
         enable_quorum_lockspace_ind,
         help_ind,

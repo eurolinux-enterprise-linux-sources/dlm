@@ -1,5 +1,5 @@
 Name:           dlm
-Version:        4.0.6
+Version:        4.0.7
 Release:        1%{?dist}
 License:        GPLv2 and GPLv2+ and LGPLv2+
 # For a breakdown of the licensing, see README.license
@@ -17,7 +17,7 @@ Source0:        http://git.fedorahosted.org/cgit/dlm.git/snapshot/%{name}-%{vers
 # Patch0: 0001-foo.patch
 
 %if 0%{?rhel}
-ExclusiveArch: i686 x86_64 s390x
+ExclusiveArch: i686 x86_64 s390x ppc64le
 %endif
 
 Requires:       %{name}-lib = %{version}-%{release}
@@ -106,6 +106,12 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/*.pc
 
 %changelog
+* Tue Apr 04 2017 David Teigland <teigland@redhat.com> - 4.0.7-1
+- New upstream release
+
+* Thu Mar 23 2017 Alasdair Kergon <agk@redhat.com> - 4.0.6-2
+- Add ppc64le to build.
+
 * Fri Jun 10 2016 David Teigland <teigland@redhat.com> - 4.0.6-1
 - New upstream release
 

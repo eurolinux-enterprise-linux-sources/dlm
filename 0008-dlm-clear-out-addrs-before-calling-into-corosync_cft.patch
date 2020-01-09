@@ -1,0 +1,40 @@
+From 54a5a6b7137c9f6e969bde8f0245a5bc3465536c Mon Sep 17 00:00:00 2001
+From: Christine Caulfield <ccaulfie@redhat.com>
+Date: Tue, 9 Sep 2014 09:29:01 +0100
+Subject: [PATCH 8/8] dlm: clear out addrs before calling into
+ corosync_cft_get_node_addrs()
+
+The corosync_cfg_get_node_addrs() call does not fill the whole of the
+addrs field passed in, specifically it only writes the the address
+family and IP address, leaving the port number untouched.
+
+If the port number contains junk, then that can get passed into the
+kernel by dlm_controld where it is subsequently used in the comparison
+that checks for valid cluster nodes in a connection. If this happens
+then an otherwise valid connection can be rejected and the dlm will
+hang.
+
+I've seen this quite often on s390 but I don't see any reason why it
+might not also be causing intermittent connection problems on other
+archs.
+
+Signed-off-by: Christine Caulfield <ccaulfie@redhat.com>
+---
+ dlm_controld/member.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/dlm_controld/member.c b/dlm_controld/member.c
+index d4031ee7a948..10351ec41d6d 100644
+--- a/dlm_controld/member.c
++++ b/dlm_controld/member.c
+@@ -132,6 +132,7 @@ static void quorum_callback(quorum_handle_t h, uint32_t quorate,
+ 
+ 	quorum_node_count = 0;
+ 	memset(&quorum_nodes, 0, sizeof(quorum_nodes));
++	memset(&addrs, 0, sizeof(addrs));
+ 
+ 	for (i = 0; i < node_list_entries; i++)
+ 		quorum_nodes[quorum_node_count++] = node_list[i];
+-- 
+1.8.3.1
+

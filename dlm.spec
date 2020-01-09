@@ -1,6 +1,6 @@
 Name:           dlm
 Version:        4.0.2
-Release:        3%{?dist}
+Release:        5%{?dist}
 License:        GPLv2 and GPLv2+ and LGPLv2+
 # For a breakdown of the licensing, see README.license
 Group:          System Environment/Kernel
@@ -17,9 +17,11 @@ Source0:        http://git.fedorahosted.org/cgit/dlm.git/snapshot/%{name}-%{vers
 Patch0: 0001-dlm_stonith-add-man-page.patch
 Patch1: 0002-dlm_stonith-install-man-page.patch
 Patch2: 0003-libdlm-udev-dir-now-under-usr-lib.patch
+Patch3: 0005-dlm_tool-fix-status-printing-in-libdlmcontrol.patch
+Patch4: 0008-dlm-clear-out-addrs-before-calling-into-corosync_cft.patch
 
 %if 0%{?rhel}
-ExclusiveArch: i686 x86_64
+ExclusiveArch: i686 x86_64 s390x
 %endif
 
 Requires:       %{name}-lib = %{version}-%{release}
@@ -39,6 +41,8 @@ The kernel dlm requires a user daemon to control membership.
 %patch0 -p1 -b .0001-dlm_stonith-add-man-page.patch
 %patch1 -p1 -b .0002-dlm_stonith-install-man-page.patch
 %patch2 -p1 -b .0003-libdlm-udev-dir-now-under-usr-lib.patch
+%patch3 -p1 -b .0005-dlm_tool-fix-status-printing-in-libdlmcontrol.patch
+%patch4 -p1 -b .0008-dlm-clear-out-addrs-before-calling-into-corosync_cft.patch
 
 %build
 # upstream does not require configure
@@ -110,6 +114,12 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/*.pc
 
 %changelog
+* Mon Nov 17 2014 David Teigland <teigland@redhat.com> - 4.0.2-5
+- dlm_tool: fix status printing in libdlmcontrol 
+
+* Fri Sep 12 2014 David Teigland <teigland@redhat.com> - 4.0.2-4
+- Enable s390x, fix non-zeroed addrs
+
 * Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 4.0.2-3
 - Mass rebuild 2013-12-27
 

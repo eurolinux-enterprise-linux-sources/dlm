@@ -79,7 +79,6 @@ struct node_daemon {
 	int fence_actor_done; /* for status/debug */
 	int fence_actor_last; /* for status/debug */
 	int fence_actors[MAX_NODES];
-	int fence_actors_orig[MAX_NODES];
 
 	struct protocol proto;
 	struct fence_config fence_config;
@@ -119,7 +118,6 @@ static int zombie_count;
 
 static int fence_result_pid;
 static unsigned int fence_result_try;
-static int stateful_merge_wait; /* cluster is stuck in waiting for manual intervention */
 
 static void send_fence_result(int nodeid, int result, uint32_t flags, uint64_t walltime);
 static void send_fence_clear(int nodeid, int result, uint32_t flags, uint64_t walltime);
@@ -538,7 +536,6 @@ static int set_fence_actors(struct node_daemon *node, int all_memb)
 	int i, nodeid, count = 0, low = 0;
 
 	memset(node->fence_actors, 0, sizeof(node->fence_actors));
-	memset(node->fence_actors_orig, 0, sizeof(node->fence_actors_orig));
 
 	for (i = 0; i < daemon_member_count; i++) {
 		nodeid = daemon_member[i].nodeid;
@@ -551,9 +548,6 @@ static int set_fence_actors(struct node_daemon *node, int all_memb)
 		if (!low || nodeid < low)
 			low = nodeid;
 	}
-
-	/* keep a copy of the original set so they can be retried if all fail */
-	memcpy(node->fence_actors_orig, node->fence_actors, sizeof(node->fence_actors));
 
 	log_debug("set_fence_actors for %d low %d count %d",
 		  node->nodeid, low, count);
@@ -597,7 +591,6 @@ static int get_fence_actor(struct node_daemon *node)
 static void clear_fence_actor(int nodeid, int actor)
 {
 	struct node_daemon *node;
-	int remaining = 0;
 	int i;
 
 	node = get_node_daemon(nodeid);
@@ -605,15 +598,10 @@ static void clear_fence_actor(int nodeid, int actor)
 		return;
 
 	for (i = 0; i < MAX_NODES; i++) {
-		if (node->fence_actors[i] == actor)
+		if (node->fence_actors[i] == actor) {
 			node->fence_actors[i] = 0;
-		else if (node->fence_actors[i])
-			remaining++;
-	}
-
-	if (!remaining && opt(repeat_failed_fencing_ind)) {
-		log_debug("clear_fence_actor %d restoring original actors to retry", actor);
-		memcpy(node->fence_actors, node->fence_actors_orig, sizeof(node->fence_actors));
+			return;
+		}
 	}
 }
 
@@ -859,14 +847,10 @@ static void daemon_fence_work(void)
 
 		if ((clean_count >= merge_count) && !part_count && (low == our_nodeid))
 			kick_stateful_merge_members();
-		if ((clean_count < merge_count) && !part_count)
-			stateful_merge_wait = 1;
 
 		retry = 1;
 		goto out;
 	}
-	if (stateful_merge_wait)
-		stateful_merge_wait = 0;
 
 	/*
 	 * startup fencing
@@ -1887,7 +1871,7 @@ int set_protocol(void)
 			 */
 
 			error = cpg_dispatch(cpg_handle_daemon, CS_DISPATCH_ONE);
-			if (error != CS_OK && error != CS_ERR_BAD_HANDLE)
+			if (error != CS_OK)
 				log_error("daemon cpg_dispatch one error %d", error);
 		}
 		if (pollfd.revents & (POLLERR | POLLHUP | POLLNVAL)) {
@@ -2197,7 +2181,7 @@ void process_cpg_daemon(int ci)
 	cs_error_t error;
 
 	error = cpg_dispatch(cpg_handle_daemon, CS_DISPATCH_ALL);
-	if (error != CS_OK && error != CS_ERR_BAD_HANDLE)
+	if (error != CS_OK)
 		log_error("daemon cpg_dispatch error %d", error);
 }
 
@@ -2398,8 +2382,7 @@ static int print_state_daemon(char *str)
 		 "fence_pid=%d "
 		 "fence_in_progress_unknown=%d "
 		 "zombie_count=%d "
-		 "monotime=%llu "
-		 "stateful_merge_wait=%d ",
+		 "monotime=%llu ",
 		 daemon_member_count,
 		 daemon_joined_count,
 		 daemon_remove_count,
@@ -2409,8 +2392,7 @@ static int print_state_daemon(char *str)
 		 daemon_fence_pid,
 		 fence_in_progress_unknown,
 		 zombie_count,
-		 (unsigned long long)monotime(),
-		 stateful_merge_wait);
+		 (unsigned long long)monotime());
 
 	return strlen(str) + 1;
 }

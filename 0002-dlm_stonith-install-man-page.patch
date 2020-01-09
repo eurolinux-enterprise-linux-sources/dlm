@@ -1,0 +1,37 @@
+From f8a4ed037cc32ef77ecce635a072859356c9e300 Mon Sep 17 00:00:00 2001
+From: David Teigland <teigland@redhat.com>
+Date: Thu, 1 Aug 2013 12:03:44 -0500
+Subject: [PATCH] dlm_stonith: install man page
+
+Signed-off-by: David Teigland <teigland@redhat.com>
+---
+ fence/Makefile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/fence/Makefile b/fence/Makefile
+index b4c59dd..77bf0fd 100644
+--- a/fence/Makefile
++++ b/fence/Makefile
+@@ -1,10 +1,10 @@
+ DESTDIR=
+ PREFIX=/usr
+ BINDIR=$(PREFIX)/sbin
+-#MANDIR=$(PREFIX)/share/man
++MANDIR=$(PREFIX)/share/man
+ 
+ BIN_TARGET = dlm_stonith
+-#MAN_TARGET = dlm_stonith.8
++MAN_TARGET = dlm_stonith.8
+ 
+ BIN_SOURCE = stonith_helper.c
+ 
+@@ -53,5 +53,5 @@ install: all
+ 	$(INSTALL) -d $(DESTDIR)/$(BINDIR)
+ 	$(INSTALL) -d $(DESTDIR)/$(MANDIR)/man8
+ 	$(INSTALL) -c -m 755 $(BIN_TARGET) $(DESTDIR)/$(BINDIR)
+-#	$(INSTALL) -m 644 $(MAN_TARGET) $(DESTDIR)/$(MANDIR)/man8/
++	$(INSTALL) -m 644 $(MAN_TARGET) $(DESTDIR)/$(MANDIR)/man8/
+ 
+-- 
+1.8.3.1
+

@@ -1,6 +1,6 @@
 Name:           dlm
-Version:        4.0.7
-Release:        1%{?dist}
+Version:        4.0.2
+Release:        3%{?dist}
 License:        GPLv2 and GPLv2+ and LGPLv2+
 # For a breakdown of the licensing, see README.license
 Group:          System Environment/Kernel
@@ -14,10 +14,12 @@ BuildRequires:  systemd-units
 BuildRequires:  systemd-devel
 Source0:        http://git.fedorahosted.org/cgit/dlm.git/snapshot/%{name}-%{version}.tar.gz
 
-# Patch0: 0001-foo.patch
+Patch0: 0001-dlm_stonith-add-man-page.patch
+Patch1: 0002-dlm_stonith-install-man-page.patch
+Patch2: 0003-libdlm-udev-dir-now-under-usr-lib.patch
 
 %if 0%{?rhel}
-ExclusiveArch: i686 x86_64 s390x ppc64le
+ExclusiveArch: i686 x86_64
 %endif
 
 Requires:       %{name}-lib = %{version}-%{release}
@@ -34,7 +36,9 @@ The kernel dlm requires a user daemon to control membership.
 %prep
 %setup -q
 
-# %patch0 -p1 -b .0001-foo.patch
+%patch0 -p1 -b .0001-dlm_stonith-add-man-page.patch
+%patch1 -p1 -b .0002-dlm_stonith-install-man-page.patch
+%patch2 -p1 -b .0003-libdlm-udev-dir-now-under-usr-lib.patch
 
 %build
 # upstream does not require configure
@@ -106,30 +110,6 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/*.pc
 
 %changelog
-* Tue Apr 04 2017 David Teigland <teigland@redhat.com> - 4.0.7-1
-- New upstream release
-
-* Thu Mar 23 2017 Alasdair Kergon <agk@redhat.com> - 4.0.6-2
-- Add ppc64le to build.
-
-* Fri Jun 10 2016 David Teigland <teigland@redhat.com> - 4.0.6-1
-- New upstream release
-
-* Tue Apr 26 2016 David Teigland <teigland@redhat.com> - 4.0.5-1
-- New upstream release
-
-* Mon Feb 29 2016 David Teigland <teigland@redhat.com> - 4.0.4-1
-- New upstream release
-
-* Mon Jul 06 2015 David Teigland <teigland@redhat.com> - 4.0.2-6
-- dlm_controld: don't log error from cpg_dispatch
-
-* Mon Nov 17 2014 David Teigland <teigland@redhat.com> - 4.0.2-5
-- dlm_tool: fix status printing in libdlmcontrol 
-
-* Fri Sep 12 2014 David Teigland <teigland@redhat.com> - 4.0.2-4
-- Enable s390x, fix non-zeroed addrs
-
 * Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 4.0.2-3
 - Mass rebuild 2013-12-27
 

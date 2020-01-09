@@ -925,7 +925,7 @@ void cluster_dead(int ci)
 	cluster_down = 1;
 }
 
-static int loop(void)
+static void loop(void)
 {
 	struct lockspace *ls;
 	int poll_timeout = -1;
@@ -1028,10 +1028,8 @@ static int loop(void)
 	for (;;) {
 		rv = poll(pollfd, client_maxi + 1, poll_timeout);
 		if (rv == -1 && errno == EINTR) {
-			if (daemon_quit && list_empty(&lockspaces)) {
-				rv = 0;
+			if (daemon_quit && list_empty(&lockspaces))
 				goto out;
-			}
 			if (daemon_quit) {
 				log_error("shutdown ignored, active lockspaces");
 				daemon_quit = 0;
@@ -1103,7 +1101,6 @@ static int loop(void)
 
 	list_for_each_entry(ls, &lockspaces, list)
 		log_error("abandoned lockspace %s", ls->name);
-	return rv;
 }
 
 static int lockfile(const char *dir, const char *name)
@@ -1345,11 +1342,6 @@ static void set_opt_defaults(void)
 			"enable_startup_fencing", 's', req_arg_bool,
 			1, NULL,
 			"enable/disable startup fencing");
-
-	set_opt_default(repeat_failed_fencing_ind,
-			"repeat_failed_fencing", '\0', req_arg_bool,
-			1, NULL,
-			"enable/disable retrying after fencing fails");
 
 	set_opt_default(enable_quorum_fencing_ind,
 			"enable_quorum_fencing", 'q', req_arg_bool,
@@ -1602,7 +1594,7 @@ int main(int argc, char **argv)
 
 	fd = lockfile(RUNDIR, RUN_FILE_NAME);
 	if (fd < 0)
-		return 1;
+		return fd;
 
 	log_level(NULL, LOG_INFO, "dlm_controld %s started", RELEASE_VERSION);
 
@@ -1610,30 +1602,29 @@ int main(int argc, char **argv)
 	act.sa_handler = sigterm_handler;
 	rv = sigaction(SIGTERM, &act, NULL);
 	if (rv < 0)
-		goto out;
+		return -rv;
 	rv = sigaction(SIGINT, &act, NULL);
 	if (rv < 0)
-		goto out;
+		return -rv;
 
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = SIG_IGN;
 	rv = sigaction(SIGHUP, &act, NULL);
 	if (rv < 0)
-		goto out;
+		return -rv;
 
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sigchld_handler;
 	act.sa_flags = SA_NOCLDSTOP;
 	rv = sigaction(SIGCHLD, &act, NULL);
 	if (rv < 0)
-		goto out;
+		return -rv;
 
 	/* set_scheduler(); */
 
-	rv = loop();
+	loop();
 
- out:
 	unlink_lockfile(fd, RUNDIR, RUN_FILE_NAME);
-	return rv < 0 ? 1 : 0;
+	return 0;
 }
 

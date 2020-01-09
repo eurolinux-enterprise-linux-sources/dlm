@@ -5,7 +5,7 @@ LIBDIR=$(PREFIX)/$(LIBNUM)
 HDRDIR=$(PREFIX)/include 
 MANDIR=$(PREFIX)/share/man
 PKGDIR=$(LIBDIR)/pkgconfig
-UDEVDIR=/usr/lib/udev/rules.d
+UDEVDIR=/lib/udev/rules.d
 
 LIB_NAME = libdlm
 LIB_MAJOR = 3
@@ -102,10 +102,10 @@ $(LLT_TARGET): $(LLT_O)
 	ln -sf $(LLT_TARGET) $(LLT_SMAJOR)
 
 $(LIB_PC): $(LIB_PCIN)
-	cat $(LIB_PCIN) | sed -e 's#@PREFIX@#$(PREFIX)#g;s#@LIBDIR@#$(LIBDIR)#g' > $@
+	cat $(LIB_PCIN) | sed -e 's#@PREFIX@#$(PREFIX)#g' > $@
 
 $(LLT_PC): $(LLT_PCIN)
-	cat $(LIB_PCIN) | sed -e 's#@PREFIX@#$(PREFIX)#g;s#@LIBDIR@#$(LIBDIR)#g' > $@
+	cat $(LIB_PCIN) | sed -e 's#@PREFIX@#$(PREFIX)#g' > $@
 
 clean:
 	rm -f *.o *.so *.so.* *.a *.pc

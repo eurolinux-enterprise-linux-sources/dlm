@@ -1,7 +1,7 @@
 prefix=@PREFIX@
 exec_prefix=${prefix}
 includedir=${prefix}/include
-libdir=@LIBDIR@
+libdir=${exec_prefix}/lib64
 
 Name: libdlm
 Description: The dlm library
